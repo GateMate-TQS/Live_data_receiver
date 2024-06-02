@@ -22,8 +22,16 @@ import org.springframework.web.client.HttpServerErrorException;
 @EnableScheduling
 public class LiveData {
 
-    @Autowired
+    
     private RabbitTemplate rabbitTemplate;
+
+    private RestTemplate restTemplate;
+
+    @Autowired
+    public LiveData(RabbitTemplate rabbitTemplate , RestTemplate restTemplate){
+        this.rabbitTemplate = rabbitTemplate;
+        this.restTemplate = restTemplate;
+    }
 
     @Value("${api.key}")
     private String apiKey;
@@ -42,19 +50,31 @@ public class LiveData {
     @Scheduled(fixedRate = 60000000) // every minute
     public void fetchDataAndSendToQueue() {
         System.out.println("Fetching data from API");
-        RestTemplate restTemplate = new RestTemplate();
-        for (int i = 0; i < FLIGHT_STATUS.size(); i++) {
-            String url = API_URL + apiKey + "&dep_icao=" + DEP_ICAO + "&flight_status=" + FLIGHT_STATUS.get(i);
-            try {
-                ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-                String jsonData = response.getBody();
+        // RestTemplate restTemplate = new RestTemplate();
+        for (String status : FLIGHT_STATUS) {
+            String jsonData = fetchFlightData(restTemplate, status); // Call the extracted method
+            if (jsonData != null) {
                 rabbitTemplate.convertAndSend(QUEUE_NAME, jsonData);
                 System.out.println("Data sent to queue");
-            } catch (HttpClientErrorException | HttpServerErrorException e) {
-                System.err.println("Error accessing API: " + e.getRawStatusCode() + " - " + e.getStatusText());
-            } catch (Exception e) {
-                System.err.println("Unexpected error: " + e.getMessage());
             }
         }
+    }
+
+    // Extracted method for API call
+    protected String fetchFlightData(RestTemplate restTemplate, String flightStatus) {
+        String url = API_URL + apiKey + "&dep_icao=" + DEP_ICAO + "&flight_status=" + flightStatus;
+        try {
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            return response.getBody();
+        } catch (HttpClientErrorException | HttpServerErrorException e) {
+            System.err.println("Error accessing API: " + e.getRawStatusCode() + " - " + e.getStatusText());
+        } catch (Exception e) {
+            System.err.println("Unexpected error: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public List getFlightStatus() {
+        return FLIGHT_STATUS;
     }
 }
