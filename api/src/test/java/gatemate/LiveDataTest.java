@@ -69,7 +69,7 @@ class LiveDataTest {
         // Assert
         verify(restTemplate, times(1)).getForEntity(expectedUrlActive, String.class);
         verify(restTemplate, times(1)).getForEntity(expectedUrlScheduled, String.class); 
-        verify(rabbitTemplate, times(2)).convertAndSend(eq("flight-data"), eq(mockResponse));
+        verify(rabbitTemplate, times(2)).convertAndSend("flight-data", mockResponse);
         logger.info("Test passed");
     }
 
