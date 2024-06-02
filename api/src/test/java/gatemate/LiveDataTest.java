@@ -8,7 +8,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.BeforeEach;
-
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,7 +27,6 @@ import org.springframework.web.client.RestTemplate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 @ExtendWith(MockitoExtension.class)
 class LiveDataTest {
@@ -51,30 +50,33 @@ class LiveDataTest {
     }
 
     @Test
+    @DisplayName("Fetch data and send to queue successfully")
     void fetchDataAndSendToQueue_Success() {
-        String mockResponse = "{\"data\": [{\"flight_date\": \"2023-11-23\", \"flight_status\": \"scheduled\"}]}"; 
-        String expectedUrlActive = "http://api.aviationstack.com/v1/flights?access_key=" + apiKey + "&dep_icao=LPPT&flight_status=active";
-        String expectedUrlScheduled = "http://api.aviationstack.com/v1/flights?access_key=" + apiKey + "&dep_icao=LPPT&flight_status=scheduled";
-        logger.info("Expected URL for active: {}" , expectedUrlActive);
-        logger.info("Expected URL for scheduled: {}" , expectedUrlScheduled);
-        
+        String mockResponse = "{\"data\": [{\"flight_date\": \"2023-11-23\", \"flight_status\": \"scheduled\"}]}";
+        String expectedUrlActive = "http://api.aviationstack.com/v1/flights?access_key=" + apiKey
+                + "&dep_icao=LPPT&flight_status=active";
+        String expectedUrlScheduled = "http://api.aviationstack.com/v1/flights?access_key=" + apiKey
+                + "&dep_icao=LPPT&flight_status=scheduled";
+        logger.info("Expected URL for active: {}", expectedUrlActive);
+        logger.info("Expected URL for scheduled: {}", expectedUrlScheduled);
+
         when(restTemplate.getForEntity(expectedUrlActive, String.class))
                 .thenReturn(ResponseEntity.ok(mockResponse));
         when(restTemplate.getForEntity(expectedUrlScheduled, String.class))
                 .thenReturn(ResponseEntity.ok(mockResponse));
-        
+
         // Act
         liveData.fetchDataAndSendToQueue();
 
         // Assert
         verify(restTemplate, times(1)).getForEntity(expectedUrlActive, String.class);
-        verify(restTemplate, times(1)).getForEntity(expectedUrlScheduled, String.class); 
+        verify(restTemplate, times(1)).getForEntity(expectedUrlScheduled, String.class);
         verify(rabbitTemplate, times(2)).convertAndSend("flight-data", mockResponse);
         logger.info("Test passed");
     }
 
-
     @Test
+    @DisplayName("Error fetching data and sending to queue")
     void testFetchDataAndSendToQueue_HttpClientErrorException() {
         // Mock the API response to throw HttpClientErrorException
 
@@ -89,6 +91,7 @@ class LiveDataTest {
     }
 
     @Test
+    @DisplayName("Fetch data and send to queue successfully with server error")
     void testFetchDataAndSendToQueue_HttpServerErrorException() {
         // Mock the API response to throw HttpServerErrorException
         when(restTemplate.getForEntity(anyString(), eq(String.class)))
@@ -102,6 +105,7 @@ class LiveDataTest {
     }
 
     @Test
+    @DisplayName("Fetch data and send to queue successfully with unexpected exception")
     void testFetchDataAndSendToQueue_UnexpectedException() {
         // Mock the API response to throw an unexpected exception
         when(restTemplate.getForEntity(anyString(), eq(String.class)))
@@ -115,6 +119,7 @@ class LiveDataTest {
     }
 
     @Test
+    @DisplayName("Queue creation")
     void testQueueCreation() {
         // Verify that the queue is created with the correct name
         Queue queue = liveData.queue();
