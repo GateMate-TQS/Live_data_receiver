@@ -67,8 +67,8 @@ class LiveDataTest {
         liveData.fetchDataAndSendToQueue();
 
         // Assert
-        verify(restTemplate, times(1)).getForEntity(eq(expectedUrlActive), eq(String.class)); 
-        verify(restTemplate, times(1)).getForEntity(eq(expectedUrlScheduled), eq(String.class)); 
+        verify(restTemplate, times(1)).getForEntity(expectedUrlActive, String.class);
+        verify(restTemplate, times(1)).getForEntity(expectedUrlScheduled, String.class); 
         verify(rabbitTemplate, times(2)).convertAndSend(eq("flight-data"), eq(mockResponse));
         logger.info("Test passed");
     }
