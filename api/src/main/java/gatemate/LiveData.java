@@ -9,6 +9,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.context.annotation.Bean;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import org.springframework.amqp.core.Queue;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,13 +22,12 @@ import org.springframework.web.client.HttpServerErrorException;
 @EnableScheduling
 public class LiveData {
 
-    
     private RabbitTemplate rabbitTemplate;
 
     private RestTemplate restTemplate;
 
     @Autowired
-    public LiveData(RabbitTemplate rabbitTemplate , RestTemplate restTemplate){
+    public LiveData(RabbitTemplate rabbitTemplate, RestTemplate restTemplate) {
         this.rabbitTemplate = rabbitTemplate;
         this.restTemplate = restTemplate;
     }
@@ -39,6 +41,8 @@ public class LiveData {
 
     private static final String QUEUE_NAME = "flight-data";
 
+    private static final Logger logger = LoggerFactory.getLogger(LiveData.class);
+
     @Bean
     public Queue queue() {
         return new Queue(QUEUE_NAME, false);
@@ -46,12 +50,12 @@ public class LiveData {
 
     @Scheduled(fixedRate = 60000000) // every minute
     public void fetchDataAndSendToQueue() {
-        System.out.println("Fetching data from API");
+        logger.info("Fetching data from API");
         for (String status : FLIGHT_STATUS) {
             String jsonData = fetchFlightData(restTemplate, status); // Call the extracted method
             if (jsonData != null) {
                 rabbitTemplate.convertAndSend(QUEUE_NAME, jsonData);
-                System.out.println("Data sent to queue");
+                logger.info("Data sent to queue: {}", jsonData);
             }
         }
     }
@@ -63,9 +67,9 @@ public class LiveData {
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
             return response.getBody();
         } catch (HttpClientErrorException | HttpServerErrorException e) {
-            System.err.println("Error accessing API: " + e.getRawStatusCode() + " - " + e.getStatusText());
+            logger.error("Error accessing API: {}", e.getStatusText());
         } catch (Exception e) {
-            System.err.println("Unexpected error: " + e.getMessage());
+            logger.error("Unexpected error: {}", e.getMessage());
         }
         return null;
     }
