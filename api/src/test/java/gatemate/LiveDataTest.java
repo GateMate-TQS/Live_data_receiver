@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 
 @ExtendWith(MockitoExtension.class)
-public class LiveDataTest {
+class LiveDataTest {
 
     private static final Logger logger = LoggerFactory.getLogger(LiveDataTest.class);
 
@@ -51,12 +51,12 @@ public class LiveDataTest {
     }
 
     @Test
-    public void fetchDataAndSendToQueue_Success() {
+    void fetchDataAndSendToQueue_Success() {
         String mockResponse = "{\"data\": [{\"flight_date\": \"2023-11-23\", \"flight_status\": \"scheduled\"}]}"; 
         String expectedUrlActive = "http://api.aviationstack.com/v1/flights?access_key=" + apiKey + "&dep_icao=LPPT&flight_status=active";
         String expectedUrlScheduled = "http://api.aviationstack.com/v1/flights?access_key=" + apiKey + "&dep_icao=LPPT&flight_status=scheduled";
-        logger.info("Expected URL for active: " + expectedUrlActive);
-        logger.info("Expected URL for scheduled: " + expectedUrlScheduled);
+        logger.info("Expected URL for active: {}" , expectedUrlActive);
+        logger.info("Expected URL for scheduled: {}" , expectedUrlScheduled);
         
         when(restTemplate.getForEntity(expectedUrlActive, String.class))
                 .thenReturn(ResponseEntity.ok(mockResponse));
@@ -75,7 +75,7 @@ public class LiveDataTest {
 
 
     @Test
-    public void testFetchDataAndSendToQueue_HttpClientErrorException() {
+    void testFetchDataAndSendToQueue_HttpClientErrorException() {
         // Mock the API response to throw HttpClientErrorException
 
         when(restTemplate.getForEntity(anyString(), eq(String.class)))
@@ -89,7 +89,7 @@ public class LiveDataTest {
     }
 
     @Test
-    public void testFetchDataAndSendToQueue_HttpServerErrorException() {
+    void testFetchDataAndSendToQueue_HttpServerErrorException() {
         // Mock the API response to throw HttpServerErrorException
         when(restTemplate.getForEntity(anyString(), eq(String.class)))
                 .thenThrow(new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR));
@@ -102,7 +102,7 @@ public class LiveDataTest {
     }
 
     @Test
-    public void testFetchDataAndSendToQueue_UnexpectedException() {
+    void testFetchDataAndSendToQueue_UnexpectedException() {
         // Mock the API response to throw an unexpected exception
         when(restTemplate.getForEntity(anyString(), eq(String.class)))
                 .thenThrow(new RuntimeException("Unexpected error"));
@@ -115,7 +115,7 @@ public class LiveDataTest {
     }
 
     @Test
-    public void testQueueCreation() {
+    void testQueueCreation() {
         // Verify that the queue is created with the correct name
         Queue queue = liveData.queue();
         assertEquals("flight-data", queue.getName());
