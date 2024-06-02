@@ -10,9 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.context.annotation.Bean;
 
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Queue;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.client.HttpClientErrorException;
@@ -50,7 +47,6 @@ public class LiveData {
     @Scheduled(fixedRate = 60000000) // every minute
     public void fetchDataAndSendToQueue() {
         System.out.println("Fetching data from API");
-        // RestTemplate restTemplate = new RestTemplate();
         for (String status : FLIGHT_STATUS) {
             String jsonData = fetchFlightData(restTemplate, status); // Call the extracted method
             if (jsonData != null) {
@@ -72,9 +68,5 @@ public class LiveData {
             System.err.println("Unexpected error: " + e.getMessage());
         }
         return null;
-    }
-
-    public List getFlightStatus() {
-        return FLIGHT_STATUS;
     }
 }
