@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import org.springframework.amqp.core.Queue;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
@@ -27,9 +28,9 @@ public class LiveData {
     private RestTemplate restTemplate;
 
     @Autowired
-    public LiveData(RabbitTemplate rabbitTemplate, RestTemplate restTemplate) {
+    public LiveData(RabbitTemplate rabbitTemplate, RestTemplateBuilder restTemplateBuilder) {
         this.rabbitTemplate = rabbitTemplate;
-        this.restTemplate = restTemplate;
+        this.restTemplate = restTemplateBuilder.build();
     }
 
     @Value("${api.key}")
